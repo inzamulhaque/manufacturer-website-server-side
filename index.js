@@ -21,7 +21,7 @@ const verifyJWT = (req, res, next) => {
 
     const getToken = authHeaders.split(" ")[1];
 
-    jwt.verify(getToken, process.env.JWT_KEY, (err, decoded) => {
+    jwt.verify(getToken, process.env.TOKEN_KEY, (err, decoded) => {
         if (err) {
             return res.status(403).send({ message: "forbidden access" });
         }
@@ -34,6 +34,7 @@ async function run() {
     try {
         await client.connect();
         const userCollection = client.db("ih_electronics").collection("users");
+        const profileCollection = client.db("ih_electronics").collection("profile");
 
         // create new user and set default role
         app.post("/user/:email", async (req, res) => {
@@ -45,13 +46,28 @@ async function run() {
             if (!findUser) {
                 await userCollection.insertOne(user);
             }
-            const token = jwt.sign({ email }, process.env.TOKEN_KEY, { expiresIn: '1h' });
+            const token = jwt.sign({ email }, process.env.TOKEN_KEY, { expiresIn: '10h' });
             res.send({ token });
         });
 
         // get one user
         app.get("/user/:email", verifyJWT, async (req, res) => {
+            const { email } = req.params;
+            const result = await userCollection.findOne({ email });
+            res.send(result);
+        });
 
+        // set and update user profile
+        app.put("/profile/:email", verifyJWT, async (req, res) => {
+            const { email } = req.params;
+            const user = req.body;
+            const filter = { email };
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: { email, ...user }
+            };
+            const result = await profileCollection.updateOne(filter, updatedDoc, options);
+            res.send(result);
         });
     } finally {
 
