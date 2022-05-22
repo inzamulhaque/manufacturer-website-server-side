@@ -69,6 +69,13 @@ async function run() {
             const result = await profileCollection.updateOne(filter, updatedDoc, options);
             res.send(result);
         });
+
+        // get profile info
+        app.get("/profile/:email", verifyJWT, async (req, res) => {
+            const { email } = req.params;
+            const result = await profileCollection.findOne({ email });
+            res.send(result);
+        });
     } finally {
 
     }
