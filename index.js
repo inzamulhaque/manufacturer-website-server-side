@@ -76,6 +76,13 @@ async function run() {
             const result = await profileCollection.findOne({ email });
             res.send(result);
         });
+
+        // get admin
+        app.get("/admin/:email", verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email });
+            res.send(user);
+        });
     } finally {
 
     }
