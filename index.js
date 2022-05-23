@@ -96,11 +96,21 @@ async function run() {
             res.send(user);
         });
 
+        // add new item
         app.post("/additem", verifyJWT, verifyAdmin, async (req, res) => {
             const item = req.body;
             const result = await itemCollection.insertOne(item);
             res.send(result);
         });
+
+        // get item for home page
+        app.get("/homeitem", async (req, res) => {
+            const { limit } = req.query;
+            const cursor = itemCollection.find().sort({ _id: -1 }).limit(limit);
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
     } finally {
 
     }
