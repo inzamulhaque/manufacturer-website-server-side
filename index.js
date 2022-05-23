@@ -156,6 +156,14 @@ async function run() {
             res.send(result);
         });
 
+        // get user review for show user
+        app.get("/review/:email", verifyJWT, async (req, res) => {
+            const { email } = req.params;
+            const cursor = reviewCollection.find({ email }).sort({ _id: -1 });
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
     } finally {
 
     }
