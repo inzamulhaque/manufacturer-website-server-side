@@ -34,6 +34,7 @@ async function run() {
     try {
         await client.connect();
         const userCollection = client.db("ih_electronics").collection("users");
+        const itemCollection = client.db("ih_electronics").collection("items");
         const profileCollection = client.db("ih_electronics").collection("profile");
 
         // admin verify
@@ -93,6 +94,12 @@ async function run() {
             const email = req.params.email;
             const user = await userCollection.findOne({ email });
             res.send(user);
+        });
+
+        app.post("/additem", verifyJWT, verifyAdmin, async (req, res) => {
+            const item = req.body;
+            const result = await itemCollection.insertOne(item);
+            res.send(result);
         });
     } finally {
 
