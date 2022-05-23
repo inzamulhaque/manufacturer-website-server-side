@@ -36,6 +36,17 @@ async function run() {
         const userCollection = client.db("ih_electronics").collection("users");
         const profileCollection = client.db("ih_electronics").collection("profile");
 
+        // admin verify
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if (requesterAccount.role === "admin") {
+                next();
+            } else {
+                res.status(403).send({ message: 'forbidden' });
+            }
+        }
+
         // create new user and set default role
         app.post("/user/:email", async (req, res) => {
             const { email } = req.params;
