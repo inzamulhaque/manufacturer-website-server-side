@@ -119,6 +119,13 @@ async function run() {
             res.send(result);
         });
 
+        // get item for stock summary
+        app.get("/stocksummary", async (req, res) => {
+            const cursor = itemCollection.find().sort({ availableQty: 1 }).limit(5);
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
     } finally {
 
     }
