@@ -39,6 +39,7 @@ async function run() {
         const itemCollection = client.db("ih_electronics").collection("items");
         const profileCollection = client.db("ih_electronics").collection("profile");
         const orderCollection = client.db("ih_electronics").collection("orders");
+        const reviewCollection = client.db("ih_electronics").collection("reviews");
 
         // admin verify
         const verifyAdmin = async (req, res, next) => {
@@ -145,6 +146,13 @@ async function run() {
         app.get("/order/:id", verifyJWT, async (req, res) => {
             const { id } = req.params;
             const result = await orderCollection.findOne({ _id: ObjectId(id) });
+            res.send(result);
+        });
+
+        // add new rivew
+        app.post("/review", verifyJWT, async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
             res.send(result);
         });
 
