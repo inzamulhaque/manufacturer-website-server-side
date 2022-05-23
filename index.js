@@ -33,9 +33,12 @@ const verifyJWT = (req, res, next) => {
 async function run() {
     try {
         await client.connect();
+
+        // add collections
         const userCollection = client.db("ih_electronics").collection("users");
         const itemCollection = client.db("ih_electronics").collection("items");
         const profileCollection = client.db("ih_electronics").collection("profile");
+        const orderCollection = client.db("ih_electronics").collection("orders");
 
         // admin verify
         const verifyAdmin = async (req, res, next) => {
@@ -121,8 +124,27 @@ async function run() {
 
         // get item for stock summary
         app.get("/stocksummary", async (req, res) => {
-            const cursor = itemCollection.find().sort({ availableQty: 1 }).limit(5);
+            const cursor = itemCollection.find().sort({ availableQty: -1 }).limit(5);
             const result = await cursor.toArray();
+            res.send(result);
+        });
+
+        // add new order
+        app.post("/order", verifyJWT, async (req, res) => {
+            const order = req.body;
+            const itemId = order.itemId;
+            const item = await itemCollection.findOne({ _id: ObjectId(itemId) })
+            const newQty = parseInt(item.availableQty) - parseInt(order.qty);
+            const result = await orderCollection.insertOne(order);
+            await itemCollection.updateOne({ _id: ObjectId(itemId) }, { $set: { availableQty: newQty } });
+
+            res.send(result);
+        });
+
+        // get order
+        app.get("/order/:id", verifyJWT, async (req, res) => {
+            const { id } = req.params;
+            const result = await orderCollection.findOne({ _id: ObjectId(id) });
             res.send(result);
         });
 
