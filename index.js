@@ -164,6 +164,13 @@ async function run() {
             res.send(result);
         });
 
+        // get reviews for home page
+        app.get("/reviews", async (req, res) => {
+            const cursor = reviewCollection.find().sort({ _id: -1 }).limit(9);
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
     } finally {
 
     }
