@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const app = express();
@@ -105,9 +105,17 @@ async function run() {
 
         // get item for home page
         app.get("/homeitem", async (req, res) => {
-            const { limit } = req.query;
-            const cursor = itemCollection.find().sort({ _id: -1 }).limit(limit);
+            const itemLimit = parseInt(req.query.limit);
+            const cursor = itemCollection.find().sort({ _id: -1 }).limit(itemLimit);
             const result = await cursor.toArray();
+            res.send(result);
+        });
+
+        // get item by id
+        app.get("/item/:id", async (req, res) => {
+            const { id } = req.params;
+            const query = { _id: ObjectId(id) };
+            const result = await itemCollection.findOne(query);
             res.send(result);
         });
 
