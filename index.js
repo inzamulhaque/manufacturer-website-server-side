@@ -3,6 +3,7 @@ const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const stripe = require('stripe')(process.env.STRIPE_KEY);
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -40,6 +41,7 @@ async function run() {
         const profileCollection = client.db("ih_electronics").collection("profile");
         const orderCollection = client.db("ih_electronics").collection("orders");
         const reviewCollection = client.db("ih_electronics").collection("reviews");
+        const paymentCollection = client.db("ih_electronics").collection("payment");
 
         // admin verify
         const verifyAdmin = async (req, res, next) => {
@@ -169,6 +171,24 @@ async function run() {
             res.send(result);
         });
 
+        // updated order
+        app.patch("/order/:id", verifyJWT, async (req, res) => {
+            const { id } = req.params;
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    paid: true,
+                    status: "panding",
+                    transactionId: payment.transactionId
+                }
+            };
+            const updateOrder = await orderCollection.updateOne(filter, updatedDoc);
+            await paymentCollection.insertOne(payment);
+
+            res.send(updateOrder);
+        });
+
         // add new rivew
         app.post("/review", verifyJWT, async (req, res) => {
             const review = req.body;
@@ -189,6 +209,25 @@ async function run() {
             const cursor = reviewCollection.find().sort({ _id: -1 }).limit(9);
             const result = await cursor.toArray();
             res.send(result);
+        });
+
+        // create-payment-intent
+        app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+            const order = req.body;
+            const totalCost = parseFloat(order?.totalCost);
+            if (totalCost) {
+                const amount = totalCost * 100;
+
+                const paymentIntent = await stripe.paymentIntents.create({
+                    amount: amount,
+                    currency: "usd",
+                    payment_method_types: ["card"]
+                });
+
+                res.send({
+                    clientSecret: paymentIntent.client_secret,
+                });
+            }
         });
 
     } finally {
