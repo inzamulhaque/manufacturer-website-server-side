@@ -154,8 +154,12 @@ async function run() {
         // get order for one user
         app.get("/order", verifyJWT, async (req, res) => {
             const email = req.decoded.email;
-            const cursor = orderCollection.find({ email }).sort({ _id: -1 });
-            const result = await cursor.toArray();
+            const result = await orderCollection.find({ email }).sort({ _id: -1 }).toArray();
+            res.send(result);
+        });
+
+        app.get("/allOrders", verifyJWT, async (req, res) => {
+            const result = await orderCollection.find().sort({ _id: -1 }).toArray();
             res.send(result);
         });
 
@@ -179,13 +183,25 @@ async function run() {
             const updatedDoc = {
                 $set: {
                     paid: true,
-                    status: "panding",
+                    status: "pending",
                     transactionId: payment.transactionId
                 }
             };
             const updateOrder = await orderCollection.updateOne(filter, updatedDoc);
             await paymentCollection.insertOne(payment);
 
+            res.send(updateOrder);
+        });
+
+        app.patch("/shipped/:id", verifyJWT, verifyAdmin, async (req, res) => {
+            const { id } = req.params;
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    status: "shipped"
+                }
+            };
+            const updateOrder = await orderCollection.updateOne(filter, updatedDoc);
             res.send(updateOrder);
         });
 
