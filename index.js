@@ -149,6 +149,14 @@ async function run() {
             res.send(result);
         });
 
+        // get order for one user
+        app.get("/order", verifyJWT, async (req, res) => {
+            const email = req.decoded.email;
+            const cursor = orderCollection.find({ email }).sort({ _id: -1 });
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
         // add new rivew
         app.post("/review", verifyJWT, async (req, res) => {
             const review = req.body;
