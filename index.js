@@ -157,6 +157,18 @@ async function run() {
             res.send(result);
         });
 
+        // delete order
+        app.delete("/order", verifyJWT, async (req, res) => {
+            const { id, itemId } = req.query;
+            const qty = parseInt(req.query.qty);
+            const email = req.decoded.email;
+            const item = await itemCollection.findOne({ _id: ObjectId(itemId) });
+            const newQty = parseInt(item.availableQty) + qty;
+            await itemCollection.updateOne({ _id: ObjectId(itemId) }, { $set: { availableQty: newQty } });
+            const result = await orderCollection.deleteOne({ _id: ObjectId(id), email, paid: false });
+            res.send(result);
+        });
+
         // add new rivew
         app.post("/review", verifyJWT, async (req, res) => {
             const review = req.body;
