@@ -144,6 +144,13 @@ async function run() {
             res.send(result);
         });
 
+        // delete item
+        app.delete("/item/:id", verifyJWT, verifyAdmin, async (req, res) => {
+            const { id } = req.params;
+            const result = await itemCollection.deleteOne({ _id: ObjectId(id) });
+            res.send(result);
+        });
+
         // get item for stock summary
         app.get("/stocksummary", async (req, res) => {
             const cursor = itemCollection.find().sort({ availableQty: -1 }).limit(5);
