@@ -132,6 +132,13 @@ async function run() {
             res.send(result);
         });
 
+        app.get("/readmore/:id", async (req, res) => {
+            const { id } = req.params;
+            const query = { _id: ObjectId(id) };
+            const result = await itemCollection.findOne(query);
+            res.send(result);
+        });
+
         // update item
         app.patch("/item/:id", verifyJWT, verifyAdmin, async (req, res) => {
             const newData = req.body;
@@ -250,6 +257,19 @@ async function run() {
         app.get("/reviews", async (req, res) => {
             const cursor = reviewCollection.find().sort({ _id: -1 }).limit(9);
             const result = await cursor.toArray();
+            res.send(result);
+        });
+
+        // get all user
+        app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
+            const result = await userCollection.find().toArray();
+            res.send(result);
+        });
+
+        // make admin
+        app.patch("/users/:id", verifyJWT, verifyAdmin, async (req, res) => {
+            const { id } = req.params;
+            const result = await userCollection.updateOne({ _id: ObjectId(id) }, { $set: { role: "admin" } });
             res.send(result);
         });
 
