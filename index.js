@@ -117,6 +117,13 @@ async function run() {
             res.send(result);
         });
 
+        // get all item
+        app.get("/item", async (req, res) => {
+            const cursor = itemCollection.find().sort({ _id: -1 });
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
         // get item by id
         app.get("/item/:id", async (req, res) => {
             const { id } = req.params;
