@@ -125,10 +125,22 @@ async function run() {
         });
 
         // get item by id
-        app.get("/item/:id", async (req, res) => {
+        app.get("/item/:id", verifyJWT, async (req, res) => {
             const { id } = req.params;
             const query = { _id: ObjectId(id) };
             const result = await itemCollection.findOne(query);
+            res.send(result);
+        });
+
+        // update item
+        app.patch("/item/:id", verifyJWT, verifyAdmin, async (req, res) => {
+            const newData = req.body;
+            const { id } = req.params;
+            const filter = { _id: ObjectId(id) };
+            const updatedDocs = {
+                $set: newData
+            };
+            const result = await itemCollection.updateOne(filter, updatedDocs);
             res.send(result);
         });
 
